@@ -1,2 +1,280 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/0256b97b-d393-45d2-9105-301baad3fc87" alt="Rosa Logo" width="600">
+</p>
+
 # Rosa
-Rosa: a tool for quality control and error profiling of long-read sequencing data.
+
+Rosa is a quality control and error analysis tool designed specifically for long-read sequencing data. It provides comprehensive quality assessment to help researchers understand data quality, identify potential sequencing error patterns, and inform downstream analysis.
+
+## Features
+
+- **Sequence Quality Analysis**: Quality assessment of raw FASTQ/FASTA files
+- **Alignment Quality Analysis**: Alignment-based quality assessment from BAM files
+- **Error Pattern Analysis**: Identification and analysis of sequencing error types
+- **Quality Report Generation**: Detailed HTML quality control reports
+
+## Requirements
+
+Rosa depends on the following external tools (must be installed and available in PATH):
+
+| Tool | Purpose |
+| :---: | --- |
+| minimap2 | Sequence alignment |
+| samtools | BAM file processing |
+| seqtk | Sequence processing |
+| mosdepth | Depth analysis |
+
+## Installation
+
+### Via Pre-compiled Wheel Package
+
+```bash
+conda env create -f environment.yml -p ./env
+conda activate ./env
+pip install -v rosa-*.whl
+
+# Verify installation
+rosa --help
+```
+
+### Docker Image
+
+Rosa provides Docker images with all dependencies pre-installed:
+
+```bash
+docker run --rm \
+  -v <data_dir>:/data \
+  -v <reference_dir>:/ref \
+  -v <output_dir>:/output \
+  -u $(id -u):$(id -g) \
+  rosa:<version> \
+  [rosa arguments]
+```
+
+## Usage
+
+### Basic Syntax
+
+```bash
+rosa [options] [arguments]
+```
+
+### Analysis Modes
+
+Rosa supports two analysis modes:
+
+**Sequence Analysis Mode** (without reference):
+
+```bash
+# FASTQ file
+rosa -i input.fastq -o output_dir -n sample_name
+
+# FASTA file
+rosa -i input.fasta -o output_dir -n sample_name
+
+# Convert from BAM
+rosa -b input.bam -o output_dir -n sample_name
+```
+
+**Alignment Analysis Mode** (with reference, performs both sequence and alignment analysis):
+
+```bash
+# From FASTQ
+rosa -i input.fastq -r reference.fasta -o output_dir -n sample_name
+
+# From BAM
+rosa -b input.bam -r reference.fasta -o output_dir -n sample_name
+```
+
+> **Note**: If the input BAM file was generated using minimap2, ensure the `--eqx` option was used during alignment.
+
+## Command-line Arguments
+
+### Preset Mode
+
+| Argument | Description | Default |
+| :---: | --- | :---: |
+| `-x, --preset` | Analysis mode: `default` (standard QC) or `rnaseq` (RNA-seq data) | default |
+
+### Sequence Analysis Arguments
+
+| Argument | Description | Default |
+| :---: | --- | :---: |
+| `-i, --sequence-path` | Input FASTQ/FASTA file path(s). Supports multiple files (space-separated) or a .txt file containing a list of file paths | - |
+
+### Alignment Analysis Arguments
+
+| Argument | Description | Default |
+| :---: | --- | :---: |
+| `-b, --bam-path` | Input BAM file path | - |
+| `-r, --reference-path` | Reference genome FASTA file path | - |
+| `--realign` | Re-align sampled reads using Minimap2 | - |
+
+### External Tool Configuration
+
+| Argument | Description | Default |
+| :---: | --- | :---: |
+| `--minimap2-path` | Path to Minimap2 executable | minimap2 |
+| `--minimap2-args` | Minimap2 command-line arguments (must include `--eqx`) | auto |
+| `--samtools-path` | Path to samtools executable | samtools |
+| `--seqtk-path` | Path to seqtk executable | seqtk |
+| `--mosdepth-path` | Path to mosdepth executable | mosdepth |
+
+**Default minimap2-args**:
+- `default` mode: `-a -k 16 -w 13 -A 2 -B 4 -O 4,41 -E 2,1 -s 180 -U70,1000000 --eqx --secondary=no`
+- `rnaseq` mode: `-ax splice -uf -k14 --eqx --secondary=no`
+
+### General Arguments
+
+| Argument | Description | Default |
+| :---: | --- | :---: |
+| `-o, --output-dir` | Output directory | rosa_report |
+| `-n, --sample-name` | Sample name | N/A |
+| `-t, --threads` | Number of threads | 4 |
+| `--sample-size` | Number of reads to analyze; set to -1 for all reads | 100000 |
+| `--seed` | Random sampling seed | 42 |
+| `--trim-quality-length` | Bases to trim from both ends for quality calculation (reads ≥100 bp) | 40 |
+| `--keep-intermediates` | Retain intermediate files | False |
+| `--verbose` | Enable verbose logging | False |
+| `--debug` | Enable debug output | False |
+
+## Examples
+
+### Basic Sequence Analysis
+
+```bash
+# Single file
+rosa -i sample.fastq -o qc_results -n "Sample_001"
+
+# Multiple files
+rosa -i sample_1.fastq sample_2.fastq -o qc_results -n "Sample_001"
+
+# Using file list
+rosa -i files.txt -o qc_results -n "Sample_001"
+```
+
+### Alignment Analysis
+
+```bash
+# From FASTQ
+rosa -i sample.fastq -r reference.fasta -o qc_results -n "Sample_001"
+
+# From BAM
+rosa -b aligned.bam -r reference.fasta -o qc_results -n "Sample_001"
+```
+
+### RNA-seq Analysis
+
+```bash
+rosa -i sample.fastq -r reference.fasta -o qc_results -n "Sample_RNA" -x rnaseq
+```
+
+### Advanced Configuration
+
+```bash
+# Full data analysis with multi-threading
+rosa -i sample.fastq -o qc_results -n "Sample_001" -t 16 --sample-size -1
+
+# Keep intermediate files with verbose logging
+rosa -b aligned.bam -r reference.fasta -o qc_results -n "Sample_001" \
+     --keep-intermediates --verbose
+
+# Custom minimap2 arguments
+rosa -i sample.fastq -r reference.fasta -o qc_results -n "Sample_001" \
+     --minimap2-args "-a -k 16 -w 13 -A 2 -B 4 -O 4,41 -E 2,1 -s 180 -U70,1000000 --eqx --secondary=no"
+```
+
+### Docker Usage
+
+```bash
+ROSA_IMAGE="rosa:1.1.2"
+FASTQ_DIR="/path/to/fastq_files"
+REF_DIR="/path/to/reference"
+OUTPUT_DIR="/path/to/output"
+
+mkdir -p ${OUTPUT_DIR}
+chmod 777 ${OUTPUT_DIR}
+
+docker run --rm \
+  -v ${FASTQ_DIR}:/data \
+  -v ${REF_DIR}:/ref \
+  -v ${OUTPUT_DIR}:/output \
+  -u $(id -u):$(id -g) \
+  ${ROSA_IMAGE} \
+  -i /data/sample.fastq.gz \
+  -r /ref/genome.fasta \
+  -o /output \
+  -n "sample_name" \
+  -t 16
+```
+
+## Output
+
+```
+rosa_report/
+├── fastx_analyses/              # Sequence analysis results
+│   ├── fastx_statistics.json    # Sequence statistics
+│   ├── fastx_table.tsv          # Per-sequence attributes
+│   ├── figures/                 # Visualization plots
+│   └── results/                 # Data results
+├── bam_analyses/                # Alignment analysis results
+│   ├── coverage_analysis.json   # Coverage analysis data
+│   ├── figures/                 # Visualization plots
+│   └── results/                 # Data results
+├── report.html                  # Comprehensive HTML report
+├── metadata.tsv                 # Analysis metadata
+├── command.txt                  # Execution command
+└── Rosa.log                     # Run log
+```
+
+## Notes
+
+1. **Minimap2 Arguments**: The `--eqx` option is required for minimap2 alignment; otherwise, Rosa cannot correctly analyze error patterns
+2. **Sampling**: Default sampling of 100,000 reads balances statistical accuracy and runtime efficiency
+3. **Threading**: Use `-t` to increase threads for faster analysis, though multi-threading acceleration is limited
+4. **Dependencies**: Ensure all required tools are installed and available in PATH
+
+## Troubleshooting
+
+### Check Dependencies
+
+```bash
+minimap2 --version
+samtools --version
+seqtk
+mosdepth --version
+```
+
+### Slow Analysis
+
+- Avoid `--sample-size -1` for full data analysis unless necessary
+- Use BAM files directly if already available
+- Increase thread count with `-t` to speed up alignment
+
+### Debug Mode
+
+Use `--debug` and `--verbose` for detailed runtime information:
+
+```bash
+rosa -i sample.fastq -o qc_results -n "Sample" --verbose --debug
+```
+
+## Version
+
+Current version: Rosa 1.1.0
+
+## Authors
+
+Haibing Ma 马海兵 (mahaibing@genomics.cn)
+Jiayuan Zhang 张嘉远 (zhangjiayuan@genomics.cn)
+
+## License
+
+**Research Use Only**
+
+This software is provided strictly for individual research purposes. Commercial use is strictly prohibited.
+
+- **Allowed**: Personal academic research, learning, and non-commercial experimentation
+- **Not Allowed**: Any form of commercial application, distribution, or use that generates revenue directly or indirectly. This includes, but is not limited to, integration into commercial products, offering this software as a service, or using it for commercial gain. 
+
+For commercial licensing or permissions, please contact us.
