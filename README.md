@@ -100,15 +100,14 @@ rosa -b input.bam -r reference.fasta -o output_dir -n sample_name
 
 | Argument | Description | Default |
 | :---: | --- | :---: |
-| `-i, --sequence-path` | Input FASTQ/FASTA file path(s). Supports multiple files (space-separated) or a .txt file containing a list of file paths | - |
+| `-i, --sequence-path` | Input FASTQ/FASTA file(s). Supports multiple files (space-separated) or a .txt file containing a list of file paths | - |
 
 ### Alignment Analysis Arguments
 
 | Argument | Description | Default |
 | :---: | --- | :---: |
-| `-b, --bam-path` | Input BAM file path | - |
-| `-r, --reference-path` | Reference genome FASTA file path | - |
-| `--realign` | Re-align sampled reads using Minimap2 | - |
+| `-b, --bam-path` | Input BAM file | - |
+| `-r, --reference-path` | Reference genome FASTA file | - |
 
 ### External Tool Configuration
 
@@ -133,7 +132,6 @@ rosa -b input.bam -r reference.fasta -o output_dir -n sample_name
 | `-t, --threads` | Number of threads | 4 |
 | `--sample-size` | Number of reads to analyze; set to -1 for all reads | 100000 |
 | `--seed` | Random sampling seed | 42 |
-| `--trim-quality-length` | Bases to trim from both ends for quality calculation (reads ≥100 bp) | 40 |
 | `--keep-intermediates` | Retain intermediate files | False |
 | `--verbose` | Enable verbose logging | False |
 | `--debug` | Enable debug output | False |
@@ -187,7 +185,7 @@ rosa -i sample.fastq -r reference.fasta -o qc_results -n "Sample_001" \
 ### Docker Usage
 
 ```bash
-ROSA_IMAGE="rosa:1.1.2"
+ROSA_IMAGE="rosa:1.1.0"
 FASTQ_DIR="/path/to/fastq_files"
 REF_DIR="/path/to/reference"
 OUTPUT_DIR="/path/to/output"
@@ -265,7 +263,7 @@ Current version: Rosa 1.1.0
 
 ## Authors
 
-Haibing Ma 马海兵 (mahaibing@genomics.cn)
+Haibing Ma 马海兵 (mahaibing@genomics.cn)  
 Jiayuan Zhang 张嘉远 (zhangjiayuan@genomics.cn)
 
 ## License
