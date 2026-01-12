@@ -225,6 +225,25 @@ rosa_report/
 └── Rosa.log                     # Run log
 ```
 
+### Example Report
+
+An example HTML report is available in the [examples](./examples) directory. The report includes detailed interpretations alongside each result visualization.
+
+## Known Issues
+
+The following issues are known in the current version and will be fixed in the next release:
+
+1. **Homo/heteropolymer accuracy plot label**: The x-axis label should display "10" instead of "≥10".
+
+2. **Substitution error statistics inconsistency**: The sum of substitution errors in the substitution error analysis exceeds the substitution count in the overall error analysis. This is caused by different denominators being used. In a future update, the denominator will be unified to: `Total length of (matches + mismatches + insertions + deletions)`.
+
+3. **Strand orientation handling in substitution analysis**: Currently, substitution errors are calculated directly from alignment results without additional strand-specific processing. Future versions will reverse-complement negative strand alignments before calculating statistics.
+
+4. **Homo/heteropolymer length statistics bias**: Due to regex greedy matching behavior, homopolymers longer than the upper bound are counted incorrectly:
+   - For a 12bp homopolymer (AAAAAAAAAAAA): The regex `(?:A){3,10}` greedily matches the first 10 A's (length=10), leaving 2 A's which don't meet the minimum of 3, so they are ignored.
+   - For a 13bp homopolymer (AAAAAAAAAAAAA): The regex matches the first 10 A's, then the remaining 3 A's trigger a second match, resulting in double counting.
+   - This causes accuracy statistics at length 10 to be artificially lower than actual values.
+
 ## Notes
 
 1. **Minimap2 Arguments**: The `--eqx` option is required for minimap2 alignment; otherwise, Rosa cannot correctly analyze error patterns
