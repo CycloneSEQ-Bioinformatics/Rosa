@@ -37,20 +37,6 @@ pip install -v rosa-*.whl
 rosa --help
 ```
 
-### Docker Image
-
-Rosa provides Docker images with all dependencies pre-installed:
-
-```bash
-docker run --rm \
-  -v <data_dir>:/data \
-  -v <reference_dir>:/ref \
-  -v <output_dir>:/output \
-  -u $(id -u):$(id -g) \
-  rosa:<version> \
-  [rosa arguments]
-```
-
 ## Usage
 
 ### Basic Syntax
@@ -180,30 +166,6 @@ rosa -b aligned.bam -r reference.fasta -o qc_results -n "Sample_001" \
 # Custom minimap2 arguments
 rosa -i sample.fastq -r reference.fasta -o qc_results -n "Sample_001" \
      --minimap2-args "-a -k 16 -w 13 -A 2 -B 4 -O 4,41 -E 2,1 -s 180 -U70,1000000 --eqx --secondary=no"
-```
-
-### Docker Usage
-
-```bash
-ROSA_IMAGE="rosa:1.1.0"
-FASTQ_DIR="/path/to/fastq_files"
-REF_DIR="/path/to/reference"
-OUTPUT_DIR="/path/to/output"
-
-mkdir -p ${OUTPUT_DIR}
-chmod 777 ${OUTPUT_DIR}
-
-docker run --rm \
-  -v ${FASTQ_DIR}:/data \
-  -v ${REF_DIR}:/ref \
-  -v ${OUTPUT_DIR}:/output \
-  -u $(id -u):$(id -g) \
-  ${ROSA_IMAGE} \
-  -i /data/sample.fastq.gz \
-  -r /ref/genome.fasta \
-  -o /output \
-  -n "sample_name" \
-  -t 16
 ```
 
 ## Output
