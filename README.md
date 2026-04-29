@@ -30,6 +30,8 @@ Rosa depends on the following external tools (must be installed and available in
 
 #### 1. Download the release package
 
+Download the latest `rosa-<version>.tar.gz`
+
 ```bash
 tar -xzf rosa-*.tar.gz
 cd rosa-*
