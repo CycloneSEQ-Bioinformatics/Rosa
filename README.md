@@ -28,12 +28,29 @@ Rosa depends on the following external tools (must be installed and available in
 
 ### Via Pre-compiled Wheel Package
 
+#### 1. Download the release package
+
+```bash
+tar -xzf rosa-*.tar.gz
+cd rosa-*
+```
+
+#### 2. Create and activate the conda environment
+
 ```bash
 conda env create -f environment.yml -p ./env
 conda activate ./env
-pip install -v rosa-*.whl
+```
 
-# Verify installation
+#### 3. Install Rosa from wheel
+
+```bash
+pip install -v rosa-*.whl
+```
+
+#### 4. Verify installation
+
+```bash
 rosa --help
 ```
 
